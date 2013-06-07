@@ -38,8 +38,8 @@ class MainFrame(Widget):
         points = []
         for i in xrange(vertices+1):
             v = v.rotate(float(360)/vertices * density)
-            points.append(int(v.x) + center_x)
-            points.append(int(v.y) + center_y)
+            points.append(v.x + center_x)
+            points.append(v.y + center_y)
         return points
 
 
