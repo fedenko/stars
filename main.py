@@ -1,35 +1,55 @@
 from kivy.app import App
 from kivy.uix.widget import Widget
-from kivy.graphics import Color, Line
+from kivy.graphics import Color, Line, Ellipse
 from kivy.vector import Vector
+from kivy.clock import Clock
+from kivy.properties import (
+    NumericProperty,
+    ReferenceListProperty,
+    ObjectProperty
+)
 
-def star(vertices, density, center_x, center_y, radius, angle=None):
-    v = Vector(0, radius)
-    if angle:
-        v = v.rotate(angle)
-    points = []
-    for i in xrange(vertices+1):
-        v = v.rotate(float(360)/vertices * density)
-        points.append(int(v.x) + center_x)
-        points.append(int(v.y) + center_y)
-    return points
+
+class Ball(Widget):
+    velocity_x = NumericProperty(0)
+    velocity_y = NumericProperty(0)
+    velocity = ReferenceListProperty(velocity_x, velocity_y)
+
+    def move(self):
+        self.velocity = Vector(*self.velocity).rotate(1)
+        self.pos = Vector(*self.velocity) + self.pos
 
 
 class MainFrame(Widget):
-    def __init__(self, *args, **kw):
-        super(MainFrame, self).__init__(*args, **kw)
-        with self.canvas:
-            Color(1, 1, 1)
-            Line(points=star(7, 3, 125, 125, 125))
-            Line(circle=(125, 125, 125))
-            Line(points=star(12, 5, 500, 125, 125))
-            Line(circle=(500, 125, 125))
+    ball = ObjectProperty(None)
+
+    def serve_ball(self, vel=(2, 0)):
+        self.ball.center = self.center
+        self.ball.velocity = vel
+
+    def update(self, dt):
+        self.ball.move()
+
+    @staticmethod
+    def star(vertices, density, center_x, center_y, radius, angle=None):
+        v = Vector(0, radius)
+        if angle:
+            v = v.rotate(angle)
+        points = []
+        for i in xrange(vertices+1):
+            v = v.rotate(float(360)/vertices * density)
+            points.append(int(v.x) + center_x)
+            points.append(int(v.y) + center_y)
+        return points
 
 
 class StarsApp(App):
 
     def build(self):
-        return MainFrame()
+        main_frame = MainFrame()
+        main_frame.serve_ball()
+        Clock.schedule_interval(main_frame.update, 1.0 / 24)
+        return main_frame
 
 if __name__ == '__main__':
     StarsApp().run()

@@ -1,0 +1,22 @@
+#:kivy 1.0.9
+
+<Ball>:
+    size: 10, 10 
+    canvas:
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
+<MainFrame>:
+    ball: pong_ball
+    
+    canvas:
+        Line:
+            points: self.star(7, 3, 125, 125, 125)
+        Line:
+            points: self.star(12, 5, 500, 125, 125)
+
+    Ball:
+        id: pong_ball
+        center: self.parent.center
+
