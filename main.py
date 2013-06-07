@@ -21,7 +21,6 @@ class MainFrame(Widget):
         with self.canvas:
             Color(1, 1, 1)
             Line(points=star(7, 3, 125, 125, 125))
-            print star(7, 3, 125, 125, 125)
             Line(circle=(125, 125, 125))
             Line(points=star(12, 5, 500, 125, 125))
             Line(circle=(500, 125, 125))
