@@ -11,16 +11,35 @@ from kivy.properties import (
 )
 
 def to_points(tuples):
+    """
+    list of tuples to single list
+    """
     return [element for tupl in tuples for element in tupl]
 
 class Ball(Widget):
+    path = ObjectProperty(None)
     velocity_x = NumericProperty(0)
     velocity_y = NumericProperty(0)
     velocity = ReferenceListProperty(velocity_x, velocity_y)
+    target_x = NumericProperty(0)
+    target_y = NumericProperty(0)
+    target = ReferenceListProperty(target_x, target_y)
+
+    def set_path(self, path):
+        self.path = path
+        self.center = self.path.next()
+        self.set_new_target(*self.path.next())
 
     def move(self):
         self.center = Vector(*self.velocity) + self.center
+        distance = Vector(self.center).distance(self.target)
+        if distance < Vector(*self.velocity).length():
+            self.set_new_target(*self.path.next())
 
+    def set_new_target(self, x, y):
+        self.target = x, y
+        v = Vector(self.target) - Vector(self.center)
+        self.velocity = v.normalize() * 6
 
 class MainFrame(Widget):
     ball = ObjectProperty(None)
@@ -30,26 +49,11 @@ class MainFrame(Widget):
         self.star12_5 = list(self.get_star(12, 5, 500, 125, 125))
         self.star7_3_points = to_points(self.star7_3)
         self.star12_5_points = to_points(self.star12_5)
-        self.ball_path = itertools.cycle(self.star12_5[:-1])
         super(MainFrame, self).__init__(*args, **kw)
-
-    def serve_ball(self):
-        self.start = self.ball_path.next()
-        self.finish = self.ball_path.next()
-        self.ball.center = self.start
-        v = Vector(self.start) - Vector(self.finish)
-        v = v.normalize() * -1
-        self.ball.velocity = v
+        self.ball.set_path(itertools.cycle(self.star12_5[:-1]))
 
     def update(self, dt):
         self.ball.move()
-        distance = Vector(self.ball.center).distance(self.finish)
-        if distance < 1:
-            self.start = self.finish
-            self.finish = self.ball_path.next()
-            v = Vector(self.start) - Vector(self.finish)
-            v = v.normalize() * -1
-            self.ball.velocity = v
 
     @staticmethod
     def get_star(vertices, density, center_x, center_y, radius, angle=None):
@@ -69,8 +73,7 @@ class StarsApp(App):
 
     def build(self):
         main_frame = MainFrame()
-        main_frame.serve_ball()
-        Clock.schedule_interval(main_frame.update, 1.0 / 60)
+        Clock.schedule_interval(main_frame.update, 1.0 / 24)
         return main_frame
 
 if __name__ == '__main__':
