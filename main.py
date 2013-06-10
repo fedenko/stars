@@ -18,6 +18,7 @@ def to_points(tuples):
     return [element for tupl in tuples for element in tupl]
 
 class Ball(Widget):
+    speed = NumericProperty(1)
     velocity_x = NumericProperty(0)
     velocity_y = NumericProperty(0)
     velocity = ReferenceListProperty(velocity_x, velocity_y)
@@ -48,24 +49,27 @@ class Ball(Widget):
     def set_new_target(self, x, y):
         self.target = x, y
         v = Vector(self.target) - Vector(self.center)
-        self.velocity = v.normalize() * 6
+        self.velocity = v.normalize() * self.speed
 
 class MainFrame(Widget):
-    ball = ObjectProperty(None)
+    ball1 = ObjectProperty(None)
+    ball2 = ObjectProperty(None)
 
     def __init__(self, *args, **kw):
-        self.star7_3 = list(self.get_star(7, 3, 125, 125, 125))
-        self.star12_5 = list(self.get_star(12, 5, 500, 125, 125))
+        self.star7_3 = list(self.get_poligon(7, 3, 125, 125, 125))
+        self.star12_5 = list(self.get_poligon(12, 5, 500, 200, 200, 180 - 360.0/12))
         self.star7_3_points = to_points(self.star7_3)
         self.star12_5_points = to_points(self.star12_5)
         super(MainFrame, self).__init__(*args, **kw)
-        self.ball.path = itertools.cycle(self.star12_5[:-1])
+        self.ball1.path = itertools.cycle(self.star12_5[:-1])
+        self.ball2.path = itertools.cycle(list(self.get_poligon(48, 1, 500, 200, 200))[:-1])
 
     def update(self, dt):
-        self.ball.move()
+        self.ball1.move()
+        self.ball2.move()
 
     @staticmethod
-    def get_star(vertices, density, center_x, center_y, radius, angle=None):
+    def get_poligon(vertices, density, center_x, center_y, radius, angle=None):
         """
             Returns coordinates of star poligon:
             (x1, y1), (x1, y2), ...
@@ -74,7 +78,7 @@ class MainFrame(Widget):
         if angle:
             v = v.rotate(angle)
         for i in xrange(vertices+1):
-            v = v.rotate(float(360)/vertices * density)
+            v = v.rotate(-float(360)/vertices * density)
             yield v.x + center_x, v.y + center_y
 
 
@@ -82,7 +86,7 @@ class StarsApp(App):
 
     def build(self):
         main_frame = MainFrame()
-        Clock.schedule_interval(main_frame.update, 1.0 / 24)
+        Clock.schedule_interval(main_frame.update, 1.0 / 15)
         return main_frame
 
 if __name__ == '__main__':
