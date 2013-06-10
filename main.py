@@ -5,6 +5,7 @@ from kivy.graphics import Color, Line, Ellipse
 from kivy.vector import Vector
 from kivy.clock import Clock
 from kivy.properties import (
+    AliasProperty,
     NumericProperty,
     ReferenceListProperty,
     ObjectProperty
@@ -17,7 +18,6 @@ def to_points(tuples):
     return [element for tupl in tuples for element in tupl]
 
 class Ball(Widget):
-    path = ObjectProperty(None)
     velocity_x = NumericProperty(0)
     velocity_y = NumericProperty(0)
     velocity = ReferenceListProperty(velocity_x, velocity_y)
@@ -25,15 +25,24 @@ class Ball(Widget):
     target_y = NumericProperty(0)
     target = ReferenceListProperty(target_x, target_y)
 
+    def __init__(self, *args, **kw):
+        self._path = None
+        super(Ball, self).__init__(*args, **kw)
+
+    def get_path(self):
+        return self._path
+
     def set_path(self, path):
-        self.path = path
-        self.center = self.path.next()
-        self.set_new_target(*self.path.next())
+        self._path = path
+        self.center = self._path.next()
+        self.set_new_target(*self._path.next())
+
+    path = AliasProperty(get_path, set_path)
 
     def move(self):
         self.center = Vector(*self.velocity) + self.center
         distance = Vector(self.center).distance(self.target)
-        if distance < Vector(*self.velocity).length():
+        if distance <= Vector(*self.velocity).length():
             self.set_new_target(*self.path.next())
 
     def set_new_target(self, x, y):
@@ -50,7 +59,7 @@ class MainFrame(Widget):
         self.star7_3_points = to_points(self.star7_3)
         self.star12_5_points = to_points(self.star12_5)
         super(MainFrame, self).__init__(*args, **kw)
-        self.ball.set_path(itertools.cycle(self.star12_5[:-1]))
+        self.ball.path = itertools.cycle(self.star12_5[:-1])
 
     def update(self, dt):
         self.ball.move()
